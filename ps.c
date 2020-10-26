@@ -1,5 +1,5 @@
 void ps_func() {
-    sturct proc *p;
+    struct proc *p;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; ++p) {
         //aquire print
         cprintf("%d\n", p -> state);
