@@ -7,6 +7,23 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#ifdef DEFAULT
+#define SCHEDULER cprintf("DEFAULT");
+#endif
+#ifdef PBS
+#define SCHEDULER cprintf("PBS");
+#endif
+#ifdef FCFS
+#define SCHEDULER cprintf("FCFS");
+#endif
+#ifdef MLFQ
+#define SCHEDULER cprintf("MLFQ");
+#endif
+
+#ifndef SCHEDULER
+#define SCHEDULER cprintf("n");
+#endif
+
 struct
 {
   struct spinlock lock;
@@ -450,7 +467,7 @@ void scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-
+SCHEDULER
   for (;;)
   {
     // Enable interrupts on this processor.
