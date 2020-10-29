@@ -446,7 +446,7 @@ int getpinfo(struct proc_stat *process_state, int pid)
 }
 
 //set_priority syscall
-int set_priority(int pid, int new_priority)
+int set_priority(int new_priority, int pid)
 {
   int old_priority = -1;
   //acquire process table lock
@@ -534,9 +534,7 @@ void scheduler(void)
 #endif
 
 #ifdef PBS
-    //cprintf("pbs");
-    //Priority based scheduling
-    // Loop over process table looking for process to run.
+    //priority based scheduling
     acquire(&ptable.lock);
 
     struct proc *highest_priority_process = 0;
@@ -561,9 +559,8 @@ void scheduler(void)
     if (highest_priority_process)
     {
       p = highest_priority_process;
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
+      //switch to the highest priority process.
+      //it will then release lock and require before it comes back
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -571,8 +568,7 @@ void scheduler(void)
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
+      //process ran
       c->proc = 0;
     }
     release(&ptable.lock);
@@ -596,6 +592,7 @@ void scheduler(void)
         if (p->queue != 4)
         {
           //demote priority
+          p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue++;
           p->ticks_in_current_slice = 0;
 
@@ -774,6 +771,7 @@ void sleep(void *chan, struct spinlock *lk)
 
 #ifdef MLFQ
   //if voluntarily released cpu then reset time slice
+  p->ticks[p->queue] = p->ticks_in_current_slice;
   p->ticks_in_current_slice = 0;
 #endif
 
@@ -895,6 +893,40 @@ void procdump(void)
       for (i = 0; i < 10 && pc[i] != 0; i++)
         cprintf(" %p", pc[i]);
     }
+    cprintf("\n");
+  }
+}
+
+void ps(void)
+{ 
+  static char *states[] = {
+      [UNUSED] "unused",
+      [EMBRYO] "embryo",
+      [SLEEPING] "sleep ",
+      [RUNNABLE] "runble",
+      [RUNNING] "run   ",
+      [ZOMBIE] "zombie"};
+  int i;
+  struct proc *p;
+  char *state;
+  uint pc[10];
+  cprintf("PID  Priority  State  r_time  w_time  n_run  cur_q  q0  q1  q2  q3  q4\n");
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if (p->state == UNUSED)
+      continue;
+    if (p->state >= 0 && p->state < NELEM(states) && states[p->state])
+      state = states[p->state];
+    else
+      state = "???";
+    int w_time = ticks - p->c_time - p->r_time;
+    cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->r_time, w_time, p->num_run, p->queue, ticks[0], ticks[1], ticks[2], ticks[3], ticks[4]);
+    // if (p->state == SLEEPING)
+    // {
+    //   getcallerpcs((uint *)p->context->ebp + 2, pc);
+    //   for (i = 0; i < 10 && pc[i] != 0; i++)
+    //     cprintf(" %p", pc[i]);
+    // }
     cprintf("\n");
   }
 }
