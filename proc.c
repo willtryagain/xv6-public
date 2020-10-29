@@ -416,7 +416,7 @@ int waitx(int *wtime, int *rtime)
 int set_priority(int new_priority, int pid)
 {
   int old_priority = -1;
-  //acquire process table lock
+  //acquire process table lockdd
   acquire(&ptable.lock);
 
   //scan through process table
