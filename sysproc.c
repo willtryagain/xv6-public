@@ -95,3 +95,25 @@ sys_ps(void) {
   ps();
   return 0;
 }
+
+int sys_waitx(void) {
+  int *wtime;
+  int *rtime;
+  if (argptr(0, (char **)&wtime, sizeof(int)) , 0)
+      return -1;
+  if (argptr(1, (char **)&rtime, sizeof(int)) , 0)
+      return -1;	 
+  return waitx(wtime, rtime);
+}
+
+int sys_set_priority(void) {
+  int new_priority;
+  int pid;
+  if (argint(0, &pid) < 0)
+	return -1;
+  if (argint(0, &new_priority) < 0)
+	return -1;
+  if (new_priority < 0 || new_priority > 100)
+	return -1;
+  return set_priority(new_priority, pid);
+}
