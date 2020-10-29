@@ -412,39 +412,6 @@ int waitx(int *wtime, int *rtime)
   }
 }
 
-//getpinfo syscall
-int getpinfo(struct proc_stat *process_state, int pid)
-{
-
-  //acquire process table lock
-  acquire(&ptable.lock);
-
-  //scan through process table
-  struct proc *p;
-  int flag_found = 0;
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
-    if (p->pid == pid)
-    {
-      //set flag
-      flag_found = 1;
-      //copy data into struct
-      process_state->current_queue = p->queue;
-      process_state->num_run = p->num_run;
-      process_state->pid = p->pid;
-      process_state->runtime = (float)p->rtime;
-      for (int i = 0; i < 5; i++)
-        process_state->ticks[i] = process_state->ticks[i];
-      break;
-    }
-  }
-
-  //release process table lock
-  release(&ptable.lock);
-
-  return flag_found;
-}
-
 //set_priority syscall
 int set_priority(int new_priority, int pid)
 {
@@ -906,21 +873,19 @@ void ps(void)
       [RUNNABLE] "runble",
       [RUNNING] "run   ",
       [ZOMBIE] "zombie"};
-  int i;
   struct proc *p;
   char *state;
-  uint pc[10];
-  cprintf("PID  Priority  State  r_time  w_time  n_run  cur_q  q0  q1  q2  q3  q4\n");
+  cprintf("PID  Priority  State  rtime  w_time  n_run  cur_q  q0  q1  q2  q3  q4\n");
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if (p->state == UNUSED)
       continue;
-    if (p->state >= 0 && p->state < NELEM(states) && states[p->state])
+    if (p->state >= 0 && p->state < COUNT(states) && states[p->state])
       state = states[p->state];
     else
       state = "???";
-    int w_time = ticks - p->c_time - p->r_time;
-    cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->r_time, w_time, p->num_run, p->queue, ticks[0], ticks[1], ticks[2], ticks[3], ticks[4]);
+    int w_time = ticks - p->ctime - p->rtime;
+    cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->rtime, w_time, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
     // if (p->state == SLEEPING)
     // {
     //   getcallerpcs((uint *)p->context->ebp + 2, pc);
