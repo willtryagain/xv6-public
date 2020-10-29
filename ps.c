@@ -1,12 +1,8 @@
-void ps_func() {
-    struct proc *p;
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; ++p) {
-        //aquire print
-        cprintf("%d\n", p -> state);
-    }
-}
+#include "defs.h"
+#include "syscall.h"
+#include "user.h"
 
-int int main(int argc, char const *argv[]) {
-    ps_func();
-    return 0;
+int main() {
+	ps();
+	exit();
 }
