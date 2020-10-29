@@ -849,7 +849,7 @@ void procdump(void)
   {
     if (p->state == UNUSED)
       continue;
-    if (p->state >= 0 && p->state < NELEM(states) && states[p->state])
+    if (p->state >= 0 && p->state < COUNT(states) && states[p->state])
       state = states[p->state];
     else
       state = "???";
