@@ -118,10 +118,13 @@ found:
   p->ctime = ticks;
   p->rtime = 0;
   p->etime = 0;
+  p->stime = 0;  
 
   //Set default priority of process
   p->priority = 60;
-
+	
+  //turn around time
+  p->ticks_in_current_slice = 0;
 #ifdef MLFQ
   //Add process to queue 0 of MLFQ
   queues[0][count_in_queues[0]] = p;
@@ -402,7 +405,7 @@ int waitx(int *wtime, int *rtime)
         p->ctime = 0;
         p->etime = 0;
         p->rtime = 0;
-
+	p->stime = 0;
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -435,7 +438,7 @@ int set_priority(int new_priority, int pid)
   int old_priority = -1;
   //acquire process table lockdd
   acquire(&ptable.lock);
-
+  cprintf("pid: %d", pid);	
   //scan through process table
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -445,11 +448,12 @@ int set_priority(int new_priority, int pid)
       //store old priority and change the priority
       old_priority = p->priority;
       p->priority = new_priority;
+     // cprintf("%s\n", p->name);
     }
   }
   //release process table lock
   release(&ptable.lock);
-
+  
   //output old priority
   return old_priority;
 }
@@ -802,6 +806,7 @@ void update_running_time()
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
+
     // if process is running
     if (p->state == RUNNING)
     {
@@ -809,12 +814,16 @@ void update_running_time()
       p->rtime++;
       //cprintf("%d /", p->rtime);
  
-//update ticks_in_current_slice in case of MLFQ
+	//update ticks_in_current_slice in case of MLFQ
 #ifdef MLFQ
-      p->ticks_in_current_slice++;
-      p->ticks[p->queue]++;
-      p->last_executed = ticks;
+ 	p->ticks_in_current_slice++;
+	p->ticks[p->queue]++;
+        p->last_executed = ticks;
 #endif
+     }
+    if (p->state == SLEEPING) {
+     
+        p->stime++;
     }
   }
 
@@ -903,9 +912,8 @@ void ps(void)
       state = states[p->state];
     else
       state = "???";
-    int w_time = ticks - p->ctime - p->rtime;
-    if (p->state == SLEEPING)
-	w_time = p->last_executed - p->ctime - p->rtime;
+    int w_time = ticks - p->ctime - p->rtime - p->stime;
+   
     cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->rtime, w_time, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
     // if (p->state == SLEEPING)
     // {

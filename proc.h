@@ -52,6 +52,7 @@ struct proc {
   int ctime;                  // Creation time
   int etime;                  // End time
   int rtime;                  // Run time
+  int stime;                  // sleep time
   int priority;               // Process priority
   int queue;                  // Current queue of the process
   int ticks_in_current_slice; // Ticks in current time slice

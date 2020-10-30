@@ -109,9 +109,9 @@ int sys_waitx(void) {
 int sys_set_priority(void) {
   int new_priority;
   int pid;
-  if (argint(0, &pid) < 0)
-	return -1;
   if (argint(0, &new_priority) < 0)
+	return -1;
+  if (argint(1, &pid) < 0)
 	return -1;
   if (new_priority < 0 || new_priority > 100)
 	return -1;
