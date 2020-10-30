@@ -6,6 +6,9 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "info.h"
+#define max(n, m) n > m? n:m
+
 
 #ifdef DEFAULT
 #define SCHEDULER cprintf("DEFAULT");
@@ -29,6 +32,9 @@ struct
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
+
+int n = 0;
+int pids_arr[100];
 
 static struct proc *initproc;
 
@@ -114,17 +120,23 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
-  //Add times to process
-  p->ctime = ticks;
-  p->rtime = 0;
-  p->etime = 0;
-  p->stime = 0;  
+  //process just formed
+  p->fctime = ticks;
+  p->frtime = 0;
+  p->fstime = 0;  
 
+  p->lctime = ticks;
+  p->lrtime = 0;
+  p->lstime = 0;
+  
+  p->etime = 0;	
+ 
   //Set default priority of process
   p->priority = 60;
 	
   //turn around time
   p->ticks_in_current_slice = 0;
+  p->num_run = 0;
 #ifdef MLFQ
   //Add process to queue 0 of MLFQ
   queues[0][count_in_queues[0]] = p;
@@ -133,7 +145,7 @@ found:
   p->queue = 0;
   p->ticks_in_current_slice = 0;
 
-  p->num_run = 0;
+  
   for (int i = 0; i < 5; i++)
   {
     p->ticks[i] = 0;
@@ -398,14 +410,19 @@ int waitx(int *wtime, int *rtime)
         // Found one.
 
         //Update times
-        *wtime = p->etime - p->ctime - p->rtime;
-        *rtime = p->rtime;
+        *wtime = p->etime - p->fctime - p->frtime - p->fstime;
+        *rtime = p->frtime;
 
-        //Clean up times
-        p->ctime = 0;
-        p->etime = 0;
-        p->rtime = 0;
-	p->stime = 0;
+        //Clean up times because it is dead
+        p->fctime = 0;
+	p->frtime = 0;
+	p->fstime = 0;  
+
+	p->lctime = 0;
+	p->lrtime = 0;
+  	p->lstime = 0;
+	
+ 	p->etime = 0;
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -438,7 +455,7 @@ int set_priority(int new_priority, int pid)
   int old_priority = -1;
   //acquire process table lockdd
   acquire(&ptable.lock);
-  cprintf("pid: %d", pid);	
+  //cprintf("pid: %d", pid);	
   //scan through process table
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -469,6 +486,7 @@ int set_priority(int new_priority, int pid)
 void scheduler(void)
 {
   struct proc *p;
+
   struct cpu *c = mycpu();
   c->proc = 0;
 SCHEDULER
@@ -483,7 +501,7 @@ SCHEDULER
     acquire(&ptable.lock);
 
     struct proc *first_process = 0;
-
+	
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
       if (p->state != RUNNABLE)
@@ -509,6 +527,7 @@ SCHEDULER
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
+      p->num_run++;
       p->state = RUNNING;
 
       swtch(&(c->scheduler), p->context);
@@ -549,6 +568,7 @@ SCHEDULER
       p = highest_priority_process;
       //switch to the highest priority process.
       //it will then release lock and require before it comes back
+      p->num_run++;
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -579,11 +599,24 @@ SCHEDULER
         //cprintf("Process %d hit %d ticks\n",p->pid,p->ticks_in_current_slice);
         if (p->queue != 4)
         {
+	 // write(1, 'c', 1);
+          //info[index][0] = p->pid;
+	  //info[index][1] = ticks;
+	  //info[index][2] = p->queue;
+	  //index++;
+	  //psus
           //demote priority
+	 // pids_arr[n] = p->pid;
+	  //n++;
+	  //if (n == 100)
+	//	n = 0;
           p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue++;
           p->ticks_in_current_slice = 0;
-
+	  
+	  p->lctime = ticks;
+ 	  p->lrtime = 0;
+          p->lstime = 0;	
           //cprintf("Process %d priority demoted to %d\n",p->pid,p->queue);
         }
       }
@@ -603,6 +636,10 @@ SCHEDULER
 	  p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue--;
           p->ticks_in_current_slice = 0;
+
+	  p->lctime = ticks;
+ 	  p->lrtime = 0;
+          p->lstime = 0;
         }
 
       }
@@ -610,13 +647,13 @@ SCHEDULER
 
     struct proc *process_to_run = 0;
     // Run processes in order of priority
-    for (int priority = 0; priority < 5; priority++)
+    for (int q = 0; q < 5; q++)
     {
       for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
       {
         if (p->state != RUNNABLE)
           continue;
-        if (p->queue == priority)
+        if (p->queue == q)
         {
           process_to_run = p;
           goto down;
@@ -659,6 +696,7 @@ SCHEDULER
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+      p->num_run++;
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -762,6 +800,10 @@ void sleep(void *chan, struct spinlock *lk)
   //if voluntarily released cpu then reset time slice
   p->ticks[p->queue] = p->ticks_in_current_slice;
   p->ticks_in_current_slice = 0;
+
+  p->lctime = ticks;
+  p->lrtime = 0;
+  p->lstime = 0;
 #endif
 
   sched();
@@ -811,7 +853,8 @@ void update_running_time()
     if (p->state == RUNNING)
     {
       //update running time
-      p->rtime++;
+      p->lrtime++;
+      p->frtime++;
       //cprintf("%d /", p->rtime);
  
 	//update ticks_in_current_slice in case of MLFQ
@@ -822,8 +865,9 @@ void update_running_time()
 #endif
      }
     if (p->state == SLEEPING) {
-     
-        p->stime++;
+        
+        p->fstime++;
+	p->lstime++;	
     }
   }
 
@@ -903,7 +947,7 @@ void ps(void)
       [ZOMBIE] "zombie"};
   struct proc *p;
   char *state;
-  cprintf("PID  Priority  State  rtime  w_time  n_run  cur_q  q0  q1  q2  q3  q4\n");
+   cprintf("PID  Priority  State  rtime  w_time  n_run  cur_q  q0  q1  q2  q3  q4\n");
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if (p->state == UNUSED)
@@ -912,9 +956,9 @@ void ps(void)
       state = states[p->state];
     else
       state = "???";
-    int w_time = ticks - p->ctime - p->rtime - p->stime;
-   
-    cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->rtime, w_time, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
+    int lwtime = max(ticks - p->lctime - p->lrtime - p->lstime, 0);
+    
+    cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->frtime, lwtime, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
     // if (p->state == SLEEPING)
     // {
     //   getcallerpcs((uint *)p->context->ebp + 2, pc);
@@ -923,4 +967,18 @@ void ps(void)
     // }
     cprintf("\n");
   }
+}
+
+int get_number(int *number) {
+	acquire(&ptable.lock);
+	*number = n;
+	release(&ptable.lock);
+	return 1;	
+}
+
+int get_pids(int *pids[100]) {
+	acquire(&ptable.lock);
+	//*pids = pids_arr;
+	release(&ptable.lock);
+	return 1;	
 }

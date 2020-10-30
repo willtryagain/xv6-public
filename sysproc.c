@@ -96,6 +96,20 @@ sys_ps(void) {
   return 0;
 }
 
+int sys_get_number(void) {
+	int *number;
+	if (argptr(0, (char **)&number, sizeof(int)) , 0)
+      		return -1;
+	return get_number(number);	
+}
+
+int sys_get_pids(void) {
+	int *pids[100];
+	if (argptr(0, (char **)&pids, sizeof(int)) , 0)
+      		return -1;
+	return get_pids(pids);
+}
+
 int sys_waitx(void) {
   int *wtime;
   int *rtime;
