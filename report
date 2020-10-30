@@ -1,0 +1,19 @@
+┌────────────┬───┐
+│ Processors │ 1 │
+├────────────┼───┤
+│ RR         │ 4 │
+├────────────┼───┤
+│ FCFS       │ 3 │
+├────────────┼───┤
+│ MLFQ       │ 5 │
+├────────────┼───┤
+│ PBS        │ 3 │
+└────────────┴───┘
+
+FCFS : FCFS has lowest running time. However it also consumes maximum time waiting.
+
+RR : RR has average waiting time. It has significantly low wait time.
+
+MLFQ : MLFQ has maximum running time. Still it has the minimum waiting time.
+
+PBS : PBS has minimum running time. It also has high waiting time.  
