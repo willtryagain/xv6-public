@@ -51,6 +51,8 @@ trap(struct trapframe *tf)
     if(cpuid() == 0){
       acquire(&tickslock);
       ticks++;
+      //Update running time for all running processes
+      update_running_time();
       wakeup(&ticks);
       release(&tickslock);
     }

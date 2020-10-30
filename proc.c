@@ -596,6 +596,7 @@ SCHEDULER
       {
         if(p->queue!=0)
         {
+	  p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue--;
           p->ticks_in_current_slice = 0;
         }
@@ -806,7 +807,8 @@ void update_running_time()
     {
       //update running time
       p->rtime++;
-
+      //cprintf("%d /", p->rtime);
+ 
 //update ticks_in_current_slice in case of MLFQ
 #ifdef MLFQ
       p->ticks_in_current_slice++;
@@ -902,6 +904,8 @@ void ps(void)
     else
       state = "???";
     int w_time = ticks - p->ctime - p->rtime;
+    if (p->state == SLEEPING)
+	w_time = p->last_executed - p->ctime - p->rtime;
     cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->rtime, w_time, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
     // if (p->state == SLEEPING)
     // {
