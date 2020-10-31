@@ -15,5 +15,10 @@ FCFS : FCFS has lowest running time. However it also consumes maximum time waiti
 RR : RR has average waiting time. It has significantly low wait time.
 
 MLFQ : MLFQ has maximum running time. Still it has the minimum waiting time.
+//Queues for MLFQ
+struct proc *queues[5][NPROC];
+// Note that values will initially automatically be 0
+int count_in_queues[5];
+int max_ticks_in_queue[5] = {1, 2, 4, 8, 16};
 
 PBS : PBS has minimum running time. It also has high waiting time.  
