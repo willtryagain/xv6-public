@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 
+LIMIT = 5000
 def clean(line):
     """
     get a list of values from line
@@ -40,13 +41,13 @@ points = get_points()
 process_tuples = separate(points)
 left = 10**4
 right = 0
-fig, ax = plt.subplots()
 for key in process_tuples.keys():
-    ax.plot(*zip(*process_tuples[key]), '-o')
+    plt.plot(*zip(*process_tuples[key]), '-o')
     left = min(left, min(process_tuples[key][0]))
     right = max(right, max(process_tuples[key][0]))
-loc = plticker.MultipleLocator(base=1.0) # this locator puts ticks at regular intervals
-ax.xaxis.set_major_locator(loc)
-#plt.show()
-#plt.xticks(np.arange(left, right+1, 1.0))
+plt.axis((0, LIMIT, 0, 5))
+plt.legend()
+plt.xticks(np.arange(left, LIMIT, 500.0))
+plt.ylabel('Queue')
+plt.xlabel('Time')
 plt.show()

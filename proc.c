@@ -449,7 +449,7 @@ int set_priority(int new_priority, int pid)
   int old_priority = -1;
   //acquire process table lockdd
   acquire(&ptable.lock);
-  cprintf("pid: %d", pid);
+//  cprintf("pid: %d", pid);
   //scan through process table
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -591,6 +591,7 @@ SCHEDULER
         if (p->queue != 4)
         {
           //demote priority
+          cprintf("\n");
           cprintf("graph: %d %d %d\n", p->pid, p->queue, ticks);
           p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue++;
@@ -612,6 +613,7 @@ SCHEDULER
       {
         if(p->queue!=0)
         {
+          cprintf("\n");
           cprintf("graph: %d %d %d\n", p->pid, p->queue, ticks);
           p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue--;

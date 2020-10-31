@@ -139,85 +139,286 @@ xv6...
 cpu1: starting 1
 MLFQcpu0: starting 0
 MLFQsb: size 1000 nblocks 941 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
-init: starting sh
-$ benchmark 1 &   &
-graph: 2 0 308
-$ graph: 5 0 318
-graph: 4 0 321
-graph: 4 1 325
-graph: 10 0 326
-graph: 12 0 328
-ps
-graph: 6 0 470
-graph: 15 0 474
-PID  Priority  State  rtime  w_time  n_run  cur_q  q0  q1  q2  q3  q4
-1	60	sleep 	0	1  22  0  0  0  0  0  0
-2	60	sleep 	3	4  21  1  1  0  0  0  0
-5	60	sleep 	2	16  149  1  1  0  0  0  0
-4	60	sleep 	11	0  11  2  4  4  3  0  0
-6	60	sleep 	1	14  151  1  1  0  0  0  0
-7	60	sleep 	1	19  146  0  0  0  0  0  0
-8	60	sleep 	0	16  145  0  0  0  0  0  0
-9	60	sleep 	0	16  145  0  0  0  0  0  0
-10	60	sleep 	1	21  140  1  1  0  0  0  0
-11	60	sleep 	0	16  142  0  0  0  0  0  0
-12	60	sleep 	1	19  138  1  1  0  0  0  0
-13	60	sleep 	0	16  139  0  0  0  0  0  0
-14	60	sleep 	0	15  139  0  0  0  0  0  0
-15	60	run   	4	0  8  1  3  0  0  0  0
-$ graph: 5 1 522
-graph: 7 0 523
-graph: 5 2 529
-graph: 5 3 537
-graph: 6 1 721
-graph: 6 2 725
-graph: 8 0 726
-graph: 6 3 734
-graph: 7 1 926
-graph: 7 2 930
-graph: 7 3 938
-graph: 8 1 1125
-graph: 8 2 1129
-graph: 8 3 1137
-graph: 9 0 1324
-graph: 11 0 1325
-graph: 9 1 1327
-graph: 9 2 1331
-graph: 9 3 1339
-graph: 4 2 1343
-graph: 4 1 1417
-graph: 12 1 1519
-graph: 10 1 1528
-graph: 10 2 1532
-graph: 12 0 1533
-graph: 13 0 1534
-graph: 10 3 1542
-psgraph: 11 1 1728
-graph: 11 2 1732
 
-graph: 11 3 1740
-graph: 2 1 1740
-graph: 16 0 1741
+graph: 1 0 2
+init: starting sh
+
+graph: 1 1 25
+$ benchmark
+
+graph: 2 0 603
+
+graph: 3 0 606
+
+graph: 5 0 607
+
+graph: 3 1 608
+
+graph: 3 2 617
+
+graph: 9 0 619
+
+graph: 12 0 621
+
+graph: 4 0 808
+
+graph: 4 1 811
+
+graph: 4 2 817
+
+graph: 4 3 830
+
+graph: 5 1 1010
+
+graph: 5 2 1014
+
+graph: 5 3 1022
+
+graph: 6 0 1209
+
+graph: 6 1 1211
+
+graph: 6 2 1215
+
+graph: 6 3 1223
+
+graph: 7 0 1411
+
+graph: 7 1 1413
+
+graph: 7 2 1417
+
+graph: 7 3 1425
+
+graph: 8 0 1619
+
+graph: 9 1 1620
+
+graph: 8 1 1621
+
+graph: 12 1 1622
+
+graph: 8 2 1625
+
+graph: 8 3 1633
+
+graph: 9 0 1821
+
+graph: 9 1 1823
+
+graph: 9 2 1827
+
+graph: 9 3 1835
+
+graph: 3 3 1950
+
+graph: 3 2 1951
+
+graph: 10 0 2021
+
+graph: 10 1 2023
+
+graph: 10 2 2027
+
+graph: 10 3 2035
+
+graph: 3 1 2040
+
+graph: 11 0 2221
+
+graph: 11 1 2223
+
+graph: 11 2 2227
+
+graph: 11 3 2235
+
+graph: 12 0 2422
+
+graph: 12 1 2424
+
+graph: 12 2 2428
+
+graph: 12 3 2436
+
+graph: 2 1 2621
+$
+graph: 2 0 2622
+ 
+
+graph: 2 1 5351
+
+graph: 2 0 5352
+$ p ls
+.       
+graph: 15 0 5789
+       1 1 512
+..             1 1 512
+
+graph: 15 1 5793
+README         2 2 2286
+cat            2 3 13464
+echo           2 4 12536
+forktest       2 5 8252
+grep       
+graph: 15 2 5797
+    2 6 15288
+init           2 7 13128
+kill           2 8 12580
+ln             2 9 12488
+ls             2 10 14704
+mkdir          2 11 12600
+rm             2 12 12584
+sh            
+graph: 15 3 5805
+ 2 13 23224
+stressfs       2 14 13256
+usertests      2 15 56140
+wc             2 16 14116
+zombie         2 17 12312
+time           2 18 12788
+setPriority    2 19 12652
+ps             2 20 12264
+benchmark      2 21 13312
+console        3 22 0
+$ benchmark &
+
+graph: 2 1 9671
+
+graph: 16 0 9673
+$ 
+graph: 17 0 9675
+
+graph: 17 1 9677
+
+graph: 17 2 9683
+ps
+
+graph: 2 0 9829
+
+graph: 28 0 9830
 PID  Priority  State  rtime  w_time  n_run  cur_q  q0  q1  q2  q3  q4
-1	60	sleep 	0	1  22  0  0  0  0  0  0
-2	60	sleep 	3	5  23  0  0  0  0  0  0
-16	60	run   	1	0  2  1  1  0  0  0  0
-4	60	sleep 	11	0  16  0  0  0  0  0  0
-10	60	run   	181	124  1294  4  1  2  4  8  163
-11	60	runble	16	111  1306  4  1  2  4  8  0
-12	60	runble	3	124  1291  1  1  0  0  0  0
-13	60	runble	1	111  1303  1  1  0  0  0  0
-14	60	sleep 	0	111  1304  0  0  0  0  0  0
-$ graph: 12 1 1930
-graph: 12 2 1935
-graph: 12 3 1945
-graph: 13 1 2130
-graph: 14 0 2133
-graph: 13 2 2136
-graph: 13 3 2149
+1	60	sleep 	6	1  25  2  1  3  0  0  0
+2	60	sleep 	6	9  30  1  1  0  0  0  0
+18	80	sleep 	0	11  148  0  0  0  0  0  0
+17	60	sleep 	11	7  12  3  1  2  4  4  0
+19	79	sleep 	0	10  146  0  0  0  0  0  0
+20	78	sleep 	0	11  145  0  0  0  0  0  0
+21	77	sleep 	0	10  145  0  0  0  0  0  0
+22	76	sleep 	0	9  144  0  0  0  0  0  0
+graph: 28 1 9835
+
+23	75	sleep 	0	10  145  0  0  0  0  0  0
+24	74	sleep 	0	8  145  0  0  0  0  0  0
+25	73	sleep 	0	9  145  0  0  0  0  0  0
+26	72	sleep 	0	9  142  0  0  0  0  0  0
+27	71	sleep 	0	7  141  0  0  0  0  0  0
+28	60	run   	4	1  9  2  1  2  0  0  0
+$
+graph: 2 1 9838
+ 
+graph: 18 0 9880
+
+graph: 18 1 9882
+
+graph: 18 2 9888
+
+graph: 18 3 9898
+
+graph: 19 0 9899
+
+graph: 19 1 10080
+
+graph: 19 2 10084
+
+graph: 19 3 10092
+
+graph: 20 0 10281
+
+graph: 20 1 10283
+
+graph: 20 2 10287
+
+graph: 20 3 10295
+
+graph: 21 0 10296
+ps
+
+graph: 29 0 10450
+PID  Priority  State  rtime  w_time  n_run  cur_q  q0  q1  q2  q3  q4
+1	60	sleep 	6	1  25  2  1  3  0  0  0
+2	60	sleep 	10	10  34  2  1  3  1  0  0
+18	80	run   	515	68  706  4  1  2  4  8  500
+17	60	sleep 	11	7  12  3  1  2  4  4  0
+19	79	runble	355	84  689  4  1  2  4  8  340
+20	78	runble	15	223  549  4  1  2  4  8  0
+21	77	sleep 	1	67  706  1  1  0  0  0  0
+22	76	sleep 	0	67  704  0  0  0  0  0  0
+23	75	sleep 	0	68  703  0  0  0  0  0  0
+24	74	sleep 	0	66  703  0  0  0  0  0  0
+25	73	sleep 	0	67  703  0  0  0  0  0  0
+26	72	sleep 	0	67  700  0  0  0  0  0  0
+27	71	sleep 	0	65  699  0  0  0  0  0  0
+29	60	run   	2	1  3  1  1  1  0  0  0
+$ 
+graph: 21 1 10483
+
+graph: 21 2 10487
+
+graph: 22 0 10488
+
+graph: 21 3 10496
+
+graph: 22 1 10683
+
+graph: 22 2 10687
+
+graph: 22 3 10695
+
+graph: 23 0 10884
+
+graph: 23 1 10886
+
+graph: 23 2 10890
+
+graph: 23 3 10898
+
+graph: 17 3 10994
+
+graph: 24 0 11084
+
+graph: 24 1 11086
+
+graph: 24 2 11090
+
+graph: 24 3 11098
+
+graph: 17 2 11118
+
+graph: 25 0 11286
+
+graph: 25 1 11288
+
+graph: 25 2 11292
+
+graph: 25 3 11300
+
+graph: 17 1 11332
+
+graph: 26 0 11489
+
+graph: 26 1 11491
+
+graph: 26 2 11495
+
+graph: 26 3 11503
+
+graph: 1 2 11689
 zombie!
-exit
-graph: 2 0 29122
-exec: fail
-exec exit failed
+
+
+graph: 2 2 13530
+
+graph: 2 1 13530
+
+graph: 2 0 13531
 $ 
