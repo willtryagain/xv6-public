@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#define max(n, m) n > m? n:m
 
 #ifdef DEFAULT
 #define SCHEDULER cprintf("DEFAULT");
@@ -114,15 +115,20 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
-  //Add times to process
-  p->ctime = ticks;
-  p->rtime = 0;
-  p->etime = 0;
-  p->stime = 0;  
+  //process just formed
+    p->fctime = ticks;
+    p->frtime = 0;
+    p->fstime = 0;
+
+    p->lctime = ticks;
+    p->lrtime = 0;
+    p->lstime = 0;
+
+    p->etime = 0;
 
   //Set default priority of process
   p->priority = 60;
-	
+
   //turn around time
   p->ticks_in_current_slice = 0;
 #ifdef MLFQ
@@ -398,14 +404,19 @@ int waitx(int *wtime, int *rtime)
         // Found one.
 
         //Update times
-        *wtime = p->etime - p->ctime - p->rtime;
-        *rtime = p->rtime;
+        *wtime = p->etime - p->fctime - p->frtime - p->fstime;
+        *rtime = p->frtime;
 
-        //Clean up times
-        p->ctime = 0;
+        //Clean up times because it is dead
+        p->fctime = 0;
+        p->frtime = 0;
+        p->fstime = 0;
+
+        p->lctime = 0;
+        p->lrtime = 0;
+        p->lstime = 0;
+
         p->etime = 0;
-        p->rtime = 0;
-	p->stime = 0;
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -438,7 +449,7 @@ int set_priority(int new_priority, int pid)
   int old_priority = -1;
   //acquire process table lockdd
   acquire(&ptable.lock);
-  cprintf("pid: %d", pid);	
+  cprintf("pid: %d", pid);
   //scan through process table
   struct proc *p;
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -453,7 +464,7 @@ int set_priority(int new_priority, int pid)
   }
   //release process table lock
   release(&ptable.lock);
-  
+
   //output old priority
   return old_priority;
 }
@@ -580,6 +591,7 @@ SCHEDULER
         if (p->queue != 4)
         {
           //demote priority
+          cprintf("graph: %d %d %d\n", p->pid, p->queue, ticks);
           p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue++;
           p->ticks_in_current_slice = 0;
@@ -600,7 +612,8 @@ SCHEDULER
       {
         if(p->queue!=0)
         {
-	  p->ticks[p->queue] = p->ticks_in_current_slice;
+          cprintf("graph: %d %d %d\n", p->pid, p->queue, ticks);
+          p->ticks[p->queue] = p->ticks_in_current_slice;
           p->queue--;
           p->ticks_in_current_slice = 0;
         }
@@ -811,19 +824,20 @@ void update_running_time()
     if (p->state == RUNNING)
     {
       //update running time
-      p->rtime++;
+      p->lrtime++;
+      p->frtime++;
       //cprintf("%d /", p->rtime);
- 
+
 	//update ticks_in_current_slice in case of MLFQ
 #ifdef MLFQ
  	p->ticks_in_current_slice++;
 	p->ticks[p->queue]++;
-        p->last_executed = ticks;
+  p->last_executed = ticks;
 #endif
      }
     if (p->state == SLEEPING) {
-     
-        p->stime++;
+        p->fstime++;
+      	p->lstime++;
     }
   }
 
@@ -893,7 +907,7 @@ void procdump(void)
 }
 
 void ps(void)
-{ 
+{
   static char *states[] = {
       [UNUSED] "unused",
       [EMBRYO] "embryo",
@@ -912,10 +926,10 @@ void ps(void)
       state = states[p->state];
     else
       state = "???";
-    int w_time = ticks - p->ctime - p->rtime - p->stime;
-   
-    cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->rtime, w_time, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
-    // if (p->state == SLEEPING)
+      int lwtime = max(ticks - p->lctime - p->lrtime - p->lstime, 0);
+
+      cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->frtime, lwtime, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
+  // if (p->state == SLEEPING)
     // {
     //   getcallerpcs((uint *)p->context->ebp + 2, pc);
     //   for (i = 0; i < 10 && pc[i] != 0; i++)

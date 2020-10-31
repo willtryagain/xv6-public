@@ -49,10 +49,13 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  int ctime;                  // Creation time
+  int fctime;                  // f Creation time
+  int lctime;                  // l Creation time
   int etime;                  // End time
-  int rtime;                  // Run time
-  int stime;                  // sleep time
+  int frtime;                  // f Run time
+  int lrtime;                  // l Run time
+  int fstime;                  // f sleep time
+  int lstime;                  // l sleep time
   int priority;               // Process priority
   int queue;                  // Current queue of the process
   int ticks_in_current_slice; // Ticks in current time slice
