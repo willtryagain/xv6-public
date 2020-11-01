@@ -482,7 +482,7 @@ void scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-SCHEDULER
+
   for (;;)
   {
     // Enable interrupts on this processor.
@@ -506,7 +506,7 @@ SCHEDULER
       }
       else
       {
-        if (p->ctime < first_process->ctime)
+        if (p->fctime < first_process->fctime)
         {
           first_process = p;
         }
@@ -521,7 +521,7 @@ SCHEDULER
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
+      p->num_run++;
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -563,7 +563,7 @@ SCHEDULER
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
+      p->num_run++;
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -677,7 +677,7 @@ SCHEDULER
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
+      p->num_run++;
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -919,7 +919,7 @@ void ps(void)
       [ZOMBIE] "zombie"};
   struct proc *p;
   char *state;
-  cprintf("PID  Priority  State  rtime  w_time  n_run  cur_q  q0  q1  q2  q3  q4\n");
+  cprintf("PID  Priority  State  rtime  w_time  n_run  cur_q\tq0  q1  q2  q3  q4\n");
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if (p->state == UNUSED)
@@ -929,14 +929,25 @@ void ps(void)
     else
       state = "???";
       int lwtime = max(ticks - p->lctime - p->lrtime - p->lstime, 0);
+      cprintf("%d\t", p->pid);
+      cprintf("%d\t", p->priority);
+      cprintf("%s\t", state);
+      cprintf("%d\t", p->frtime);
+      cprintf("%d\t", lwtime);
+      cprintf("%d\t", p->num_run);
+      cprintf("%d\t", p->queue);
+      cprintf("%d   ", p->ticks[0]);
+      cprintf("%d   ", p->ticks[1]);
+      cprintf("%d   ", p->ticks[2]);
+      cprintf("%d   ", p->ticks[3]);
+      cprintf("%d\n", p->ticks[4]);
 
-      cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->frtime, lwtime, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
+      // cprintf("%d\t%d\t%s\t%d\t%d  %d  %d  %d  %d  %d  %d  %d", p->pid, p->priority, state, p->frtime, lwtime, p->num_run, p->queue, p->ticks[0], p->ticks[1], p->ticks[2], p->ticks[3], p->ticks[4]);
   // if (p->state == SLEEPING)
     // {
     //   getcallerpcs((uint *)p->context->ebp + 2, pc);
     //   for (i = 0; i < 10 && pc[i] != 0; i++)
     //     cprintf(" %p", pc[i]);
     // }
-    cprintf("\n");
   }
 }

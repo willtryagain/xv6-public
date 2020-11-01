@@ -6,6 +6,23 @@
 #include "proc.h"
 #include "x86.h"
 
+#ifdef DEFAULT
+#define SCHEDULER cprintf("DEFAULT");
+#endif
+#ifdef PBS
+#define SCHEDULER cprintf("PBS");
+#endif
+#ifdef FCFS
+#define SCHEDULER cprintf("FCFS");
+#endif
+#ifdef MLFQ
+#define SCHEDULER cprintf("MLFQ");
+#endif
+
+#ifndef SCHEDULER
+#define SCHEDULER cprintf("n");
+#endif
+
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
 extern pde_t *kpgdir;
@@ -14,6 +31,8 @@ extern char end[]; // first address after kernel loaded from ELF file
 // Bootstrap processor starts running C code here.
 // Allocate a real stack and switch to it, first
 // doing some setup required for memory allocator to work.
+
+
 int
 main(void)
 {
@@ -53,6 +72,11 @@ mpenter(void)
 static void
 mpmain(void)
 {
+  if (cpuid() == 0) {
+    cprintf("Scheduler: ");
+    SCHEDULER
+    cprintf("\n");
+  }
   cprintf("cpu%d: starting %d\n", cpuid(), cpuid());
   idtinit();       // load idt register
   xchg(&(mycpu()->started), 1); // tell startothers() we're up
