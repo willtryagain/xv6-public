@@ -1,14 +1,130 @@
-┌────────────┬───┐
-│ Processors │ 1 │
-├────────────┼───┤
-│ RR         │ 4 │
-├────────────┼───┤
-│ FCFS       │ 3 │
-├────────────┼───┤
-│ MLFQ       │ 5 │
-├────────────┼───┤
-│ PBS        │ 3 │
-└────────────┴───┘
+
+waitx(&waitime, &runtime) system call
+
+it finds the total waiting time of a process from its creation. 
+w_time = end_time - creation_time - r_time - sleep_time
+The r_time is updated every clock tick. 
+
+
+
+set_priority(int new_priority, int pid) system call
+set_priority system call changes the priority of the process. This is done by modifying the process table entry. It returns the old priority
+
+int set_priority(int new_priority, int pid) {
+ 	for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    	if (p->pid == pid) {
+      		//store old priority and change the priority
+      		old_priority = p->priority;
+      		p->priority = new_priority;
+    	}
+  	}
+}
+
+Before and after modifying the process table entry we first acquire the lock and then release the lock respectively.
+
+
+
+First Come First Serve scheduler
+FCFS scheduler searches for the process which got created first and then allocates the CPU to this process.
+
+//We loop through all the processes
+for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->state != RUNNABLE)
+        continue;
+    //the processes which are runnable enter here
+
+    if (!first_process) //process not assigned
+    	first_process = p;
+    else if (p->ctime < first_process->ctime)
+        first_process = p;     
+}
+
+
+
+Priority Based scheduler
+PBS chooses process with highest priority, having the smallest value. The default priorty is 60. Priority can be changed using setPriority command. It has more overhead.
+
+//We loop through all the processes
+for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+  if (p->state != RUNNABLE)
+    continue;
+
+    //the processes which are runnable enter here
+	if (!highest_priority_process) 
+		highest_priority_process = p;
+	else if (p->priority < highest_priority_process->priority)
+	  	highest_priority_process = p;
+}
+
+
+
+Multilevel feedback queue scheduler
+This scheduler maintains a dynamic queue occupied by processes. It has an overhead of mainting the queues.
+i. queue:  the current queue of the process.
+ii. ticks_in_current_slice: the number of times the process has run in the present time quantum. It is reset to zero when the process sleeps or changes queue.
+MLFQ has maximum running time. Still it has the minimum waiting time.
+
+//Queues for MLFQ
+struct proc *queues[5][NPROC];
+
+// number of processes in one queue  
+int count_in_queues[5]; 
+
+int max_ticks_in_queue[5] = {1, 2, 4, 8, 16}; // for the time quantum
+
+The number of ticks in a queue is kept in p->ticks[].
+
+demotion
+for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+{
+  if (p->state != RUNNABLE)
+    continue;
+  if (p->ticks_in_current_slice >= max_ticks_in_queue[p->queue])
+  {
+    //cprintf("Process %d hit %d ticks\n",p->pid,p->ticks_in_current_slice);
+    if (p->queue != 4)
+    {
+      //demote priority
+      p->ticks[p->queue] = p->ticks_in_current_slice;
+      p->queue++;
+      p->ticks_in_current_slice = 0;
+
+      //cprintf("Process %d priority demoted to %d\n",p->pid,p->queue);
+    }
+  }
+}
+
+aging
+//promote processes with longer wait times
+for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+{
+  if (p->state != RUNNABLE)
+    continue;
+  // if waiting too long
+  if(ticks - p->last_executed > AGE)
+  {
+    if(p->queue!=0)
+    {
+  p->ticks[p->queue] = p->ticks_in_current_slice;
+      p->queue--;
+      p->ticks_in_current_slice = 0;
+    }
+
+  }
+}
+
+
+Graph
+
+We store the output of the program execution in a text file. We print the pid, queue and time when a process switches in between queues. 
+Then we store these values in a dictionary in program "display_multi.py". We use matplotlib to display the points. 
+
+
+
+performance Comparision
+
+ $ time benchmark
+
 +-------------+------+------+
 |             | Run  | Wait |
 |             | Time | Time |
@@ -35,15 +151,14 @@
 +-------------+------+------+
 | FCFS        | 8    | 2    |
 +-------------+------+------+
-FCFS : FCFS has lowest running time. However it also consumes maximum time waiting.
 
-RR : RR has average waiting time. It has significantly low wait time.
 
-MLFQ : MLFQ has maximum running time. Still it has the minimum waiting time.
-//Queues for MLFQ
-struct proc *queues[5][NPROC];
-// Note that values will initially automatically be 0
-int count_in_queues[5];
-int max_ticks_in_queue[5] = {1, 2, 4, 8, 16};
+User Program
 
-PBS : PBS has minimum running time. It also has high waiting time.  
+(ii) ps 
+We print the attributes of proc structure. The wait time is calculated by maintaining a separate ctime, rtime, stime. 
+
+wtime = ticks -   ctime - rtime - stime
+
+
+
